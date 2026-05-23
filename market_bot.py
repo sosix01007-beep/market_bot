@@ -233,7 +233,7 @@ async def fetch_prices(item_id: str, quality: str) -> dict:
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         "Accept": "application/json",
     }
-    url = f"https://east.albion-online-data.com/api/v2/stats/prices/{item_id}.json?locations={locations}&qualities={quality}"
+    url = f"https://west.albion-online-data.com/api/v2/stats/prices/{item_id}.json?locations={locations}&qualities={quality}"
     try:
         async with aiohttp.ClientSession(headers=headers) as session:
             async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
