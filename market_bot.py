@@ -229,11 +229,23 @@ API_BASE = "https://west.albion-online-data.com/api/v2/stats/prices"
 # ══════════════════════════════════════════════════════
 async def fetch_prices(item_id: str, quality: str) -> dict:
     locations = ",".join(CITIES)
-    url = f"{API_BASE}/{item_id}.json?locations={locations}&qualities={quality}"
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as resp:
-            if resp.status == 200:
-                return await resp.json()
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "Accept": "application/json",
+    }
+    # ลอง server ตามลำดับ
+    servers = ["europe", "west", "east"]
+    for server in servers:
+        url = f"https://{server}.albion-online-data.com/api/v2/stats/prices/{item_id}.json?locations={locations}&qualities={quality}"
+        try:
+            async with aiohttp.ClientSession(headers=headers) as session:
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        if data:
+                            return data
+        except Exception:
+            continue
     return []
 
 
@@ -427,11 +439,12 @@ class TierEnchantQualityView(discord.ui.View):
         await i.response.defer()
 
         # สร้าง item_id
+        tier_num = self.selected_tier[1]
         enchant_num = self.selected_enchant.replace(".", "")
         if enchant_num == "0":
-            item_id = f"T{self.selected_tier[1]}_{self.item_base_id}"
+            item_id = f"T{tier_num}_{self.item_base_id}"
         else:
-            item_id = f"T{self.selected_tier[1]}_{self.item_base_id}@{enchant_num}"
+            item_id = f"T{tier_num}_{self.item_base_id}@{enchant_num}"
 
         data = await fetch_prices(item_id, self.selected_quality)
         embed = build_price_embed(
@@ -501,11 +514,12 @@ class RefreshView(discord.ui.View):
     @discord.ui.button(label="🔄 Refresh", style=discord.ButtonStyle.primary)
     async def refresh(self, i: discord.Interaction, b: discord.ui.Button):
         await i.response.defer()
+        tier_num = self.tier[1]
         enchant_num = self.enchant.replace(".", "")
         if enchant_num == "0":
-            item_id = f"T{self.tier[1]}_{self.item_base_id}"
+            item_id = f"T{tier_num}_{self.item_base_id}"
         else:
-            item_id = f"T{self.tier[1]}_{self.item_base_id}@{enchant_num}"
+            item_id = f"T{tier_num}_{self.item_base_id}@{enchant_num}"
         data = await fetch_prices(item_id, self.quality)
         embed = build_price_embed(self.item_name, item_id, self.tier, self.enchant, self.quality, data)
         await i.edit_original_response(embed=embed, view=self)
