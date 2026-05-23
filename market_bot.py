@@ -230,17 +230,23 @@ API_BASE = "https://west.albion-online-data.com/api/v2/stats/prices"
 async def fetch_prices(item_id: str, quality: str) -> dict:
     locations = ",".join(CITIES)
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "Accept": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Connection": "keep-alive",
+        "Referer": "https://www.albion-online-data.com/",
+        "Origin": "https://www.albion-online-data.com",
     }
     url = f"https://west.albion-online-data.com/api/v2/stats/prices/{item_id}.json?locations={locations}&qualities={quality}"
     try:
-        async with aiohttp.ClientSession(headers=headers) as session:
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+        connector = aiohttp.TCPConnector(ssl=False)
+        async with aiohttp.ClientSession(headers=headers, connector=connector) as session:
+            async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as resp:
                 if resp.status == 200:
-                    return await resp.json()
-    except Exception:
-        pass
+                    return await resp.json(content_type=None)
+    except Exception as e:
+        print(f"API Error: {e}")
     return []
 
 
