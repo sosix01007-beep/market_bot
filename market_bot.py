@@ -233,19 +233,14 @@ async def fetch_prices(item_id: str, quality: str) -> dict:
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         "Accept": "application/json",
     }
-    # ลอง server ตามลำดับ
-    servers = ["europe", "west", "east"]
-    for server in servers:
-        url = f"https://{server}.albion-online-data.com/api/v2/stats/prices/{item_id}.json?locations={locations}&qualities={quality}"
-        try:
-            async with aiohttp.ClientSession(headers=headers) as session:
-                async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
-                    if resp.status == 200:
-                        data = await resp.json()
-                        if data:
-                            return data
-        except Exception:
-            continue
+    url = f"https://east.albion-online-data.com/api/v2/stats/prices/{item_id}.json?locations={locations}&qualities={quality}"
+    try:
+        async with aiohttp.ClientSession(headers=headers) as session:
+            async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                if resp.status == 200:
+                    return await resp.json()
+    except Exception:
+        pass
     return []
 
 
