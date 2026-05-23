@@ -1,1 +1,1 @@
-worker: apply_bot.py
+worker: python market_bot.py
